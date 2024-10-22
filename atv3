@@ -3,6 +3,8 @@ from pydantic import BaseModel, Field, validator
 from typing import List, Optional
 from datetime import datetime
 import pytz
+import uvicorn
+import os
 
 app = FastAPI()
 
@@ -26,6 +28,11 @@ class ClienteEntrada(BaseModel):
 
 # Lista para armazenar os clientes (simulando um banco de dados)
 fila: List[Cliente] = []
+
+@app.get("/")
+def read_root():
+    """Rota raiz para verificar se a API está funcionando"""
+    return {"status": "online", "message": "API de Fila está funcionando"}
 
 @app.get("/fila", response_model=List[dict])
 def listar_fila():
@@ -126,3 +133,15 @@ def remover_cliente(id: int):
             cliente.posicao -= 1
     
     return {"message": f"Cliente {cliente_removido.nome} removido com sucesso"}
+
+if __name__ == "__main__":
+    # Obtém a porta do ambiente (Heroku define a porta dinamicamente)
+    port = int(os.getenv("PORT", 8000))
+    
+    # Inicia o servidor
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=port,
+        log_level="info"
+    )
